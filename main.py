@@ -1,21 +1,19 @@
 import cv2
 import pytesseract
 
-#72
-#73
+img = cv2.imread("pic.jpg")
+img = cv2.resize(img,(0,0),fx=4,fy=4)
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+ret, otsu1 = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+blurred = cv2.GaussianBlur(otsu1, (5, 5), 0)
+ret, otsu2 = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-image = cv2.imread('100017873.jpg')
-# image = cv2.imread("cropped_img\c9.jpg")
-image = cv2.resize(image,(0,0),fx=2,fy=2)
-gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-# gray = cv2.GaussianBlur(gray, (3, 3), 0)
-ret, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-
-
+kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
+dilated = cv2.dilate(otsu2, kernel, iterations=1)
 custom_config = r'--oem 3 --psm 6 outputbase digits'
-# custom_config = r'--oem 3 --psm 10 -c tessedit_char_whitelist=0123456789'
-text = pytesseract.image_to_string(thresh, config=custom_config)
-cv2.imshow("Image",image)
-print("Extracted Numbers:", text)
+text = pytesseract.image_to_string(dilated,config=custom_config)
+
+print("Extracted Text:\n", text)
+cv2.imshow("Image", dilated)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
